@@ -61,3 +61,11 @@ def delete_post(id: int):
             my_posts.remove(post)
             return
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+
+@app.put("/posts/{id}", status_code=status.HTTP_200_OK)
+def update_post(id: int, new_post: Post):
+    for post in my_posts:
+        if post["id"] == id:
+            post.update(new_post.model_dump())
+            return {"data": post}
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
