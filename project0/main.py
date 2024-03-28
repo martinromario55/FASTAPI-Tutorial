@@ -5,6 +5,8 @@ from typing import List
 from .schemas import PostCreate, Post, UserCreate, UserOut
 from . import models
 from .database import engine, get_db
+from.utils import hash
+
 
 
 # Create a database connection
@@ -78,6 +80,10 @@ def update_post(id: int, updated_post: PostCreate, db: Session = Depends(get_db)
 # Create new User
 @app.post('/users', status_code=status.HTTP_201_CREATED, response_model=UserOut)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
+    # Hash password
+    hashed_password = hash(user.password)
+    user.password = hashed_password
+    
     new_user = models.User(**user.model_dump())
     db.add(new_user)
     db.commit()
