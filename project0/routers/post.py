@@ -14,16 +14,16 @@ router = APIRouter(
 
 # Get All Posts
 @router.get('/', response_model=List[Post])
-def get_posts(db: Session = Depends(get_db), user_id: int = Depends(get_current_user)):
+def get_posts(db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
     posts = db.query(models.Post).all()
     # print(posts)
     return posts
 
 # Create Post
 @router.post('/', status_code=status.HTTP_201_CREATED, response_model=Post)
-def create_posts(post: PostCreate, db: Session = Depends(get_db), user_id: int = Depends(get_current_user)):
+def create_posts(post: PostCreate, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
     
-    print(user_id)
+    print(current_user.email)
     new_post = models.Post(**post.model_dump())
     db.add(new_post)
     db.commit()
@@ -33,7 +33,7 @@ def create_posts(post: PostCreate, db: Session = Depends(get_db), user_id: int =
 
 # Get Post by Id
 @router.get('/{id}', response_model=Post)
-def get_post(id: int, db: Session = Depends(get_db), user_id: int = Depends(get_current_user)):
+def get_post(id: int, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
     post = db.query(models.Post).filter(models.Post.id == id).first()
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
@@ -41,7 +41,7 @@ def get_post(id: int, db: Session = Depends(get_db), user_id: int = Depends(get_
 
 # Delete Post    
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(id: int, db: Session = Depends(get_db), user_id: int = Depends(get_current_user)):
+def delete_post(id: int, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
     
     post = db.query(models.Post).filter(models.Post.id == id)
     
@@ -55,7 +55,7 @@ def delete_post(id: int, db: Session = Depends(get_db), user_id: int = Depends(g
 
 # Update Post
 @router.put("/{id}", response_model=Post)
-def update_post(id: int, updated_post: PostCreate, db: Session = Depends(get_db), user_id: int = Depends(get_current_user)):
+def update_post(id: int, updated_post: PostCreate, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
     
     post_query = db.query(models.Post).filter(models.Post.id == id)
     
