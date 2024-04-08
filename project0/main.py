@@ -4,6 +4,10 @@ from . import models
 from .database import engine, get_db
 from .utils import hash
 from .routers import post, user, auth
+from .config import settings
+
+
+# print(settings.database_username)
 
 
 # Create a database connection
