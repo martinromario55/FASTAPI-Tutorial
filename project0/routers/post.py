@@ -1,8 +1,9 @@
 from fastapi import Response, status, HTTPException, Depends, APIRouter
 from sqlalchemy.orm import Session
 from typing import List, Optional
+from sqlalchemy import func
 
-from ..schemas import PostCreate, Post
+from ..schemas import PostCreate, Post, PostOut
 from .. import models
 from ..database import get_db
 from ..oauth2 import get_current_user
@@ -13,23 +14,16 @@ router = APIRouter(
 )
 
 # Get All Posts
-@router.get('/', response_model=List[Post])
+# @router.get('/', response_model=List[Post])
+@router.get('/', response_model=List[PostOut])
 def get_posts(db: Session = Depends(get_db), current_user: int = Depends(get_current_user), limit: int = 10, skip: int = 0, search: Optional[str] = ""):
     # Get all posts
-    # posts = db.query(models.Post).all()
-    # print(posts)
     
-    # Get all posts from current user
-    # posts = db.query(models.Post).filter(models.Post.owner_id == current_user.id).all()
+    # # search posts
+    # posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).all()
     
-    # limit posts
-    # posts = db.query(models.Post).limit(limit).all()
-    
-    # skip posts
-    # posts = db.query(models.Post).offset(skip).limit(limit).all()
-    
-    # search posts
-    posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).all()
+    # Get posts and join with vote count
+    posts = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).all()
     
     return posts
 
@@ -46,9 +40,12 @@ def create_posts(post: PostCreate, db: Session = Depends(get_db), current_user: 
     return new_post
 
 # Get Post by Id
-@router.get('/{id}', response_model=Post)
+@router.get('/{id}', response_model=PostOut)
 def get_post(id: int, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
-    post = db.query(models.Post).filter(models.Post.id == id).first()
+    # post = db.query(models.Post).filter(models.Post.id == id).first()
+    # Get posts and join with vote count
+    post = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).first()
+    
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
     return post

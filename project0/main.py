@@ -11,7 +11,7 @@ from .config import settings
 
 
 # Create a database connection
-models.Base.metadata.create_all(bind=engine)
+# models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
